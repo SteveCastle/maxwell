@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
@@ -45,6 +46,18 @@ func main() {
 		// Print the error and exit.
 		exitErrorf("Unable to upload %q to %q, %v", *filename, *bucket, err)
 	}
-
 	fmt.Printf("Successfully uploaded %q to %q\n", *filename, *bucket)
+	// Download the file we just uploaded.
+	downloader := s3manager.NewDownloader(sess)
+	buff := &aws.WriteAtBuffer{}
+	numBytes, err := downloader.Download(buff,
+		&s3.GetObjectInput{
+			Bucket: aws.String(*bucket),
+			Key:    aws.String(*key),
+		})
+	if err != nil {
+		exitErrorf("Unable to download item %q, %v", *key, err)
+	}
+
+	fmt.Println("Downloaded", numBytes, "bytes")
 }
