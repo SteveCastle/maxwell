@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/SteveCastle/maxwell"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -21,7 +23,7 @@ func main() {
 	bucket := flag.String("bucket", "maxwell-go", "S3 bucket to perform operations on")
 	filename := flag.String("filename", "/Users/tracer/Downloads/wbvxqpwfunz01.jpg", "File to upload")
 	key := flag.String("key", "/images/target.jpg", "key for upload target on s3")
-	mimeType := flag.String("mimeType", "images/jpeg", "mimeType to use for s3 upload")
+	mimeType := flag.String("mimeType", "image/jpeg", "mimeType to use for s3 upload")
 	flag.Parse()
 	//Open file to be uploaded
 	file, err := os.Open(*filename)
@@ -38,7 +40,7 @@ func main() {
 	uploader := s3manager.NewUploader(sess)
 	_, err = uploader.Upload(&s3manager.UploadInput{
 		Bucket:      aws.String(*bucket),
-		Key:         aws.String(*key),
+		Key:         aws.String((*key)),
 		Body:        file,
 		ContentType: aws.String(*mimeType),
 	})
@@ -46,7 +48,20 @@ func main() {
 		// Print the error and exit.
 		exitErrorf("Unable to upload %q to %q, %v", *filename, *bucket, err)
 	}
+
 	fmt.Printf("Successfully uploaded %q to %q\n", *filename, *bucket)
+	// Upload an svg version as well.
+	svg := maxwell.ConvertToSVG(*filename)
+	_, err = uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(*bucket),
+		Key:         aws.String("mysvg.svg"),
+		Body:        strings.NewReader(svg),
+		ContentType: aws.String("image/svg+xml"),
+	})
+	if err != nil {
+		exitErrorf("Unable to uplad svg to %q, %v", *bucket, err)
+	}
+	fmt.Printf("Successfully uploaded %q to %q\n", "svg", *bucket)
 	// Download the file we just uploaded.
 	downloader := s3manager.NewDownloader(sess)
 	buff := &aws.WriteAtBuffer{}
