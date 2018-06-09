@@ -6,13 +6,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/fogleman/primitive/primitive"
+	"github.com/SteveCastle/primitive/primitive"
 	"github.com/nfnt/resize"
 )
 
 //Config
 var inputSize = 102
-var outputSize = 102
+var outputSize = 600
 var workers = runtime.NumCPU()
 var configs shapeConfigArray
 var outputs []string
