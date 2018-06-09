@@ -11,8 +11,8 @@ import (
 )
 
 //Config
-var inputSize = 112
-var outputSize = 112
+var inputSize = 102
+var outputSize = 102
 var workers = runtime.NumCPU()
 var configs shapeConfigArray
 var outputs []string
@@ -28,7 +28,7 @@ type shapeConfig struct {
 type shapeConfigArray []shapeConfig
 
 var config = shapeConfig{
-	Count:  20,
+	Count:  6,
 	Mode:   1,
 	Alpha:  0,
 	Repeat: 10,

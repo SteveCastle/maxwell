@@ -1,11 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
+	"path"
+	"strings"
 
+	"github.com/SteveCastle/maxwell"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,6 +20,15 @@ func exitErrorf(msg string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, msg+"\n", args...)
 	os.Exit(1)
 }
+func Basename(s string) string {
+	f := path.Base(s)
+	n := strings.LastIndexByte(f, '.')
+	if n >= 0 {
+		return s[:n]
+	}
+	return s
+}
+
 func handler(ctx context.Context, s3Event events.S3Event) {
 
 	for _, record := range s3Event.Records {
@@ -31,8 +42,14 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 			fmt.Println(err)
 		}
 		downloader := s3manager.NewDownloader(sess)
-		buff := &aws.WriteAtBuffer{}
-		numBytes, err := downloader.Download(buff,
+		//Create a file for temporary access by writers.
+		file, err := os.Create("/tmp/file.jpg")
+		if err != nil {
+			exitErrorf("Unable to open file %q, %v", err)
+		}
+
+		defer file.Close()
+		numBytes, err := downloader.Download(file,
 			&s3.GetObjectInput{
 				Bucket: aws.String(recordS3.Bucket.Name),
 				Key:    aws.String(recordS3.Object.Key),
@@ -43,12 +60,13 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 
 		fmt.Println("Downloaded", numBytes, "bytes")
 
+		svg := maxwell.ConvertToSVG("/tmp/file.jpg")
 		uploader := s3manager.NewUploader(sess)
 		_, err = uploader.Upload(&s3manager.UploadInput{
 			Bucket:      aws.String(recordS3.Bucket.Name),
-			Key:         aws.String(("test.jpg")),
-			Body:        bytes.NewReader(buff.Bytes()),
-			ContentType: aws.String("image/jpeg"),
+			Key:         aws.String((fmt.Sprintf("%s.svg", Basename(recordS3.Object.Key)))),
+			Body:        strings.NewReader(svg),
+			ContentType: aws.String("image/svg+xml"),
 		})
 		if err != nil {
 			// Print the error and exit.
