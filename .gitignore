@@ -4,3 +4,4 @@ serverless.yml
 # golang output binary directory
 bin
 serverless.yml
+node_modules

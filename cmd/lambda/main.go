@@ -62,7 +62,7 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 		fmt.Printf("[%s - %s] Bucket = %s, Key = %s \n", record.EventSource, record.EventTime, recordS3.Bucket.Name, recordS3.Object.Key)
 
 		sess, err := session.NewSession(&aws.Config{
-			Region: aws.String("us-east-1")})
+			Region: aws.String("us-west-2")})
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -85,16 +85,16 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 
 		fmt.Println("Downloaded", numBytes, "bytes")
 		// Upload a lit size image.
-		simpleResize(file, 400, recordS3.Bucket.Name, fmt.Sprintf("/maxwell-cache/%s_400w.jpg", Basename(recordS3.Object.Key)), sess)
+		simpleResize(file, 400, recordS3.Bucket.Name, fmt.Sprintf("public/maxwell-cache/%s_400w.jpg", Basename(recordS3.Object.Key)), sess)
 
-		simpleResize(file, 100, recordS3.Bucket.Name, fmt.Sprintf("/maxwell-cache/%s_100w.jpg", Basename(recordS3.Object.Key)), sess)
+		simpleResize(file, 100, recordS3.Bucket.Name, fmt.Sprintf("public/maxwell-cache/%s_100w.jpg", Basename(recordS3.Object.Key)), sess)
 		// Upload a gallery thumbnail.
 		// Upload the SVG
 		svg := maxwell.ConvertToSVG("/tmp/file.jpg")
 		uploader := s3manager.NewUploader(sess)
 		_, err = uploader.Upload(&s3manager.UploadInput{
 			Bucket:      aws.String(recordS3.Bucket.Name),
-			Key:         aws.String((fmt.Sprintf("/maxwell-cache/%s.svg", Basename(recordS3.Object.Key)))),
+			Key:         aws.String((fmt.Sprintf("public/maxwell-cache/%s.svg", Basename(recordS3.Object.Key)))),
 			Body:        strings.NewReader(svg),
 			ContentType: aws.String("image/svg+xml"),
 		})
