@@ -1,13 +1,21 @@
 package maxwell
 
 import (
+	"bytes"
+	"image/jpeg"
 	"log"
 	"math/rand"
+	"os"
+	"path"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/SteveCastle/primitive/primitive"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/nfnt/resize"
+	"github.com/oliamb/cutter"
 )
 
 //Config
@@ -82,4 +90,45 @@ func ConvertToSVG(f string) string {
 		// write output image(s)
 	}
 	return model.SVG()
+}
+
+// SimpleResize resizes an input image file as a square constrained by a maximum width.
+func SquareResize(file *os.File, size uint, bucket string, k string, uploader *s3manager.Uploader) {
+	// decode jpeg into image.Image
+	img, err := jpeg.Decode(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// resize to size using Lanczos resampling
+	// and preserve aspect ratio
+
+	b := &bytes.Buffer{}
+
+	// resize to size using Lanczos resampling
+	m := resize.Resize(size, 0, img, resize.Lanczos3)
+
+	// and preserve aspect ratio
+	croppedImg, err := cutter.Crop(m, cutter.Config{
+		Width:   1,
+		Height:  1,
+		Mode:    cutter.Centered,
+		Options: cutter.Ratio,
+	})
+	jpeg.Encode(b, croppedImg, nil)
+	_, err = uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(k),
+		Body:        bytes.NewReader(b.Bytes()),
+		ContentType: aws.String("image/jpeg"),
+	})
+	file.Seek(0, 0)
+}
+
+func Basename(s string) string {
+	f := path.Base(s)
+	n := strings.LastIndexByte(f, '.')
+	if n >= 0 {
+		return f[:n]
+	}
+	return s
 }
