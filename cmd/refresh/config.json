@@ -1,0 +1,6 @@
+[
+  {"type": "square", "size": 100},
+  {"type": "square", "size": 400},
+  {"type": "square", "size": 1200},
+  {"type": "svg"}
+]
