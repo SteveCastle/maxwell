@@ -1,7 +1,8 @@
 module github.com/SteveCastle/maxwell
 
 require (
-	github.com/SteveCastle/primitive v0.0.0-20170926175833-69506c928bef
+	github.com/SteveCastle/primitive v0.0.0-20180825183137-4b0c01fd6645
+	github.com/aws/aws-lambda-go v1.6.0
 	github.com/aws/aws-sdk-go v1.15.21
 	github.com/fogleman/gg v1.1.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect

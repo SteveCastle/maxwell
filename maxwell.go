@@ -92,20 +92,18 @@ func ConvertToSVG(f string) string {
 	return model.SVG()
 }
 
-// SimpleResize resizes an input image file as a square constrained by a maximum width.
-func SquareResize(file *os.File, size uint, bucket string, k string, uploader *s3manager.Uploader) {
+// SquareResize resizes an input image file as a square constrained by a maximum width.
+func SquareResize(file *os.File, size int) bytes.Buffer {
 	// decode jpeg into image.Image
 	img, err := jpeg.Decode(file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// resize to size using Lanczos resampling
-	// and preserve aspect ratio
-
+	// bytes to return with resized jpeg image.
 	b := &bytes.Buffer{}
 
 	// resize to size using Lanczos resampling
-	m := resize.Resize(size, 0, img, resize.Lanczos3)
+	m := resize.Resize(uint(size), 0, img, resize.Lanczos3)
 
 	// and preserve aspect ratio
 	croppedImg, err := cutter.Crop(m, cutter.Config{
@@ -115,15 +113,22 @@ func SquareResize(file *os.File, size uint, bucket string, k string, uploader *s
 		Options: cutter.Ratio,
 	})
 	jpeg.Encode(b, croppedImg, nil)
-	_, err = uploader.Upload(&s3manager.UploadInput{
-		Bucket:      aws.String(bucket),
-		Key:         aws.String(k),
-		Body:        bytes.NewReader(b.Bytes()),
-		ContentType: aws.String("image/jpeg"),
-	})
 	file.Seek(0, 0)
+	return *b
 }
 
+//UploadToS3 will upload an image buffer to s3 given a bucket, key, and an s3 uploader)
+func UploadToS3(data bytes.Buffer, bucket string, k string, uploader *s3manager.Uploader) error {
+	_, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket:      aws.String(bucket),
+		Key:         aws.String(k),
+		Body:        bytes.NewReader(data.Bytes()),
+		ContentType: aws.String("image/jpeg"),
+	})
+	return err
+}
+
+// Basename returns a filename without the extension to use as the key in s3.
 func Basename(s string) string {
 	f := path.Base(s)
 	n := strings.LastIndexByte(f, '.')

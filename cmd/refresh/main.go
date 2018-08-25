@@ -77,7 +77,7 @@ func main() {
 		//Create a file to hold original image data.
 		file, err := os.Create("/tmp/file.jpg")
 		if err != nil {
-			exitErrorf("Unable to open fi:e %q, %v", err)
+			exitErrorf("Unable to open file %q, %v", err)
 		}
 		defer file.Close()
 
@@ -97,13 +97,8 @@ func main() {
 		// TODO: seperate processing and uploading and make concurrent.
 		for _, o := range outputs {
 			if o.Type == "square" {
-				maxwell.SquareResize(file,
-					uint(o.Size),
-					*bucket,
-					fmt.Sprintf("%s/%s_%dw.jpg",
-						*cachePath,
-						maxwell.Basename(*record.Key), o.Size),
-					uploader)
+				maxwell.UploadToS3(maxwell.SquareResize(file, o.Size),
+					*bucket, fmt.Sprintf("%s/%s_%dw.jpg", *cachePath, maxwell.Basename(*record.Key), o.Size), uploader)
 			}
 			if o.Type == "svg" {
 				// Create a blurred svg.

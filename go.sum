@@ -1,5 +1,9 @@
 github.com/SteveCastle/primitive v0.0.0-20170926175833-69506c928bef h1:9ghGziDtKH9+rNeynoK1klyljJTQoPPGH1Sg47BTNOk=
 github.com/SteveCastle/primitive v0.0.0-20170926175833-69506c928bef/go.mod h1:MsVEHWjVbdPHe84kS4Vivt7r3OlxI5bxr+cxQ/90Jk4=
+github.com/SteveCastle/primitive v0.0.0-20180825183137-4b0c01fd6645 h1:VAcrQ9uqxdnEpAWMb0bH20s+4ll9xAF8iZJqZyocz5I=
+github.com/SteveCastle/primitive v0.0.0-20180825183137-4b0c01fd6645/go.mod h1:MsVEHWjVbdPHe84kS4Vivt7r3OlxI5bxr+cxQ/90Jk4=
+github.com/aws/aws-lambda-go v1.6.0 h1:T+u/g79zPKw1oJM7xYhvpq7i4Sjc0iVsXZUaqRVVSOg=
+github.com/aws/aws-lambda-go v1.6.0/go.mod h1:zUsUQhAUjYzR8AuduJPCfhBuKWUaDbQiPOG+ouzmE1A=
 github.com/aws/aws-sdk-go v1.15.21 h1:STLvc6RrpycslC1NRtTvt/YSgDkIGCTrB9K9vE5R2oQ=
 github.com/aws/aws-sdk-go v1.15.21/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
 github.com/fogleman/gg v1.1.0 h1:wVTfU9tB/LDr2eI5HILatkzBQLD3yl0KtPFt8KlcSIY=
