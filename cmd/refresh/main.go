@@ -71,13 +71,19 @@ func main() {
 	// Iterate over objects in bucket with prefix.
 	fmt.Printf("Number of objects in set: %d\n", len(resp.Contents))
 	fmt.Println(resp)
+
+	// Create a syncGroup to wait for all of the files to finish processing.
 	var wg sync.WaitGroup
+
+	//Loop over every file in the target path and create a worker to handle resizing and uploading.
 	for _, record := range resp.Contents {
 		wg.Add(1)
 		go processFile(&wg, record, bucket, cachePath, outputs, downloader, uploader)
 	}
 	wg.Wait()
 }
+
+// processFile contains all of the logic to handle a single s3 target object.
 func processFile(wg *sync.WaitGroup, record *s3.Object, bucket *string, cachePath *string, outputs []OutputConfig, downloader *s3manager.Downloader, uploader *s3manager.Uploader) {
 	defer wg.Done()
 	fmt.Printf("Working on: %s\n", *record.Key)
