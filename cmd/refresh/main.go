@@ -109,16 +109,15 @@ func processFile(wg *sync.WaitGroup, record *s3.Object, bucket *string, cachePat
 	fmt.Println("Downloaded", numBytes, "bytes")
 
 	// process and upload defined file sizes.
-	// TODO: seperate processing and uploading and make concurrent.
 	for _, o := range outputs {
 		if o.Type == "square" {
 			maxwell.UploadToS3(maxwell.SquareResize(file, o.Size),
 				*bucket, fmt.Sprintf("%s/%s_%dw.jpg", *cachePath, maxwell.Basename(*record.Key), o.Size), uploader)
 		}
 		if o.Type == "svg" {
-			// Create a blurred svg.
+			// Create a blurred svg with ConvertToSVG this is a wrapper around the awesome primitive library by fogleman.
 			svg := maxwell.ConvertToSVG(fName)
-
+			// ConvertToSvg returns an svg string so you need to create a reader from it to upload.
 			_, err = uploader.Upload(&s3manager.UploadInput{
 				Bucket: aws.String(*bucket),
 				Key: aws.String((fmt.Sprintf("%s/%s.svg",
