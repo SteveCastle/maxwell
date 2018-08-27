@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -20,8 +21,28 @@ func exitErrorf(msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func handler(ctx context.Context, s3Event events.S3Event) {
+type OutputConfig struct {
+	Type string
+	Size int
+}
 
+var config = `
+[
+  {"type": "square", "size": 100},
+  {"type": "square", "size": 400},
+  {"type": "square", "size": 1200},
+  {"type": "svg"}
+]
+`
+
+func handler(ctx context.Context, s3Event events.S3Event) {
+	var outputs []OutputConfig
+
+	err := json.Unmarshal([]byte(config), &outputs)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-west-2")})
 	if err != nil {
@@ -35,7 +56,8 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 		r := record.S3
 		bucket := r.Bucket.Name
 		key := r.Object.Key
-
+		cachePath := "/public/maxwell-cache"
+		fName := "/tmp/file.jpg"
 		fmt.Printf("[%s - %s] Bucket = %s, Key = %s \n", record.EventSource, record.EventTime, bucket, key)
 
 		//Create a file for temporary access by writers.
@@ -57,38 +79,28 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 		fmt.Println("Downloaded", numBytes, "bytes")
 
 		// Upload a lit size image.
-		maxwell.SquareResize(file,
-			1200,
-			bucket,
-			fmt.Sprintf("public/maxwell-cache/%s_1200w.jpg",
-				maxwell.Basename(key)),
-			uploader)
-		// Upload a lit size image.
-		maxwell.SquareResize(file,
-			400,
-			bucket,
-			fmt.Sprintf("public/maxwell-cache/%s_400w.jpg",
-				maxwell.Basename(key)),
-			uploader)
-
-		maxwell.SquareResize(file,
-			100,
-			bucket,
-			fmt.Sprintf("public/maxwell-cache/%s_100w.jpg",
-				maxwell.Basename(key)),
-			uploader)
-		// Upload a gallery thumbnail.
-		// Upload the SVG
-		svg := maxwell.ConvertToSVG("/tmp/file.jpg")
-		_, err = uploader.Upload(&s3manager.UploadInput{
-			Bucket:      aws.String(bucket),
-			Key:         aws.String((fmt.Sprintf("public/maxwell-cache/%s.svg", maxwell.Basename(key)))),
-			Body:        strings.NewReader(svg),
-			ContentType: aws.String("image/svg+xml"),
-		})
-		if err != nil {
-			// Print the error and exit.
-			exitErrorf("Unable to upload %q to %q, %v", key, bucket, err)
+		for _, o := range outputs {
+			if o.Type == "square" {
+				maxwell.UploadToS3(maxwell.SquareResize(file, o.Size),
+					bucket, fmt.Sprintf("%s/%s_%dw.jpg", cachePath, maxwell.Basename(key), o.Size), uploader)
+			}
+			if o.Type == "svg" {
+				// Create a blurred svg with ConvertToSVG this is a wrapper around the awesome primitive library by fogleman.
+				svg := maxwell.ConvertToSVG(fName)
+				// ConvertToSvg returns an svg string so you need to create a reader from it to upload.
+				_, err = uploader.Upload(&s3manager.UploadInput{
+					Bucket: aws.String(bucket),
+					Key: aws.String((fmt.Sprintf("%s/%s.svg",
+						cachePath,
+						maxwell.Basename(key)))),
+					Body:        strings.NewReader(svg),
+					ContentType: aws.String("image/svg+xml"),
+				})
+				if err != nil {
+					// Print the error and exit.
+					exitErrorf("Unable to upload %q to %q, %v", key, bucket, err)
+				}
+			}
 		}
 
 		fmt.Printf("Successfully uploaded %q to %q\n", key, bucket)

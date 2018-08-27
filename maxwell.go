@@ -14,6 +14,7 @@ import (
 	"github.com/SteveCastle/primitive/primitive"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/edwvee/exiffix"
 	"github.com/nfnt/resize"
 	"github.com/oliamb/cutter"
 )
@@ -95,7 +96,7 @@ func ConvertToSVG(f string) string {
 // SquareResize resizes an input image file as a square constrained by a maximum width.
 func SquareResize(file *os.File, size int) bytes.Buffer {
 	// decode jpeg into image.Image
-	img, err := jpeg.Decode(file)
+	img, _, err := exiffix.Decode(file)
 	if err != nil {
 		log.Fatal(err)
 	}
