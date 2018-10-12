@@ -24,5 +24,7 @@ github.com/oliamb/cutter v0.2.2 h1:Lfwkya0HHNU1YLnGv2hTkzHfasrSMkgv4Dn+5rmlk3k=
 github.com/oliamb/cutter v0.2.2/go.mod h1:4BenG2/4GuRBDbVm/OPahDVqbrOemzpPiG5mi1iryBU=
 github.com/rwcarlsen/goexif v0.0.0-20180518182100-8d986c03457a h1:ZDZdsnbMuRSoVbq1gR47o005lfn2OwODNCr23zh9gSk=
 github.com/rwcarlsen/goexif v0.0.0-20180518182100-8d986c03457a/go.mod h1:hPqNNc0+uJM6H+SuU8sEs5K5IQeKccPqeSjfgcKGgPk=
+github.com/segmentio/ksuid v1.0.1 h1:O/0HN9qcXwqemHNVUT0L24al4IQLjwOFw5mWUy5wunE=
+github.com/segmentio/ksuid v1.0.1/go.mod h1:BXuJDr2byAiHuQaQtSKoXh1J0YmUDurywOXgB2w+OSU=
 golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81 h1:00VmoueYNlNz/aHIilyyQz/MHSqGoWJzpFv/HW8xpzI=
 golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81/go.mod h1:ux5Hcp/YLpHSI86hEcLt0YII63i6oz57MZXIpbrjZUs=

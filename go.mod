@@ -11,5 +11,6 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/oliamb/cutter v0.2.2
 	github.com/rwcarlsen/goexif v0.0.0-20180518182100-8d986c03457a // indirect
+	github.com/segmentio/ksuid v1.0.1
 	golang.org/x/image v0.0.0-20180708004352-c73c2afc3b81 // indirect
 )

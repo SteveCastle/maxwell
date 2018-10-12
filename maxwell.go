@@ -49,7 +49,7 @@ func check(err error) {
 	}
 }
 
-// ConvertToSVG converts an image buffer into a primitive SVG.
+// ConvertToSVG converts an image file on disk into a primitive SVG.
 func ConvertToSVG(f string) string {
 
 	configs = append(configs, config)
@@ -118,6 +118,31 @@ func SquareResize(file *os.File, size int) bytes.Buffer {
 	return *b
 }
 
+// Resize resizes an input image file to a set height and width without stretching.
+func Resize(file *os.File, height int, width int) bytes.Buffer {
+	// decode jpeg into image.Image
+	img, _, err := exiffix.Decode(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// bytes to return with resized jpeg image.
+	b := &bytes.Buffer{}
+
+	// resize to size using Lanczos resampling
+	m := resize.Resize(uint(width), uint(height), img, resize.Lanczos3)
+
+	// and preserve aspect ratio
+	croppedImg, err := cutter.Crop(m, cutter.Config{
+		Width:   width,
+		Height:  height,
+		Mode:    cutter.Centered,
+		Options: cutter.Ratio,
+	})
+	jpeg.Encode(b, croppedImg, nil)
+	file.Seek(0, 0)
+	return *b
+}
+
 //UploadToS3 will upload an image buffer to s3 given a bucket, key, and an s3 uploader)
 func UploadToS3(data bytes.Buffer, bucket string, k string, uploader *s3manager.Uploader) error {
 	_, err := uploader.Upload(&s3manager.UploadInput{
@@ -137,4 +162,10 @@ func Basename(s string) string {
 		return f[:n]
 	}
 	return s
+}
+
+//OutputConfig is a type defining a struct to contain output file configs.
+type OutputConfig struct {
+	Type string
+	Size int
 }

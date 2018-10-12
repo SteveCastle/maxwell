@@ -21,11 +21,8 @@ func exitErrorf(msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-type OutputConfig struct {
-	Type string
-	Size int
-}
-
+// Config struct to define resize operations.
+// Should change to come from a file in the target directory.
 var config = `
 [
   {"type": "square", "size": 100},
@@ -36,7 +33,7 @@ var config = `
 `
 
 func handler(ctx context.Context, s3Event events.S3Event) {
-	var outputs []OutputConfig
+	var outputs []maxwell.OutputConfig
 
 	err := json.Unmarshal([]byte(config), &outputs)
 	if err != nil {
@@ -78,7 +75,7 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 
 		fmt.Println("Downloaded", numBytes, "bytes")
 
-		// Upload a lit size image.
+		// Process all outputs in the output config.
 		for _, o := range outputs {
 			if o.Type == "square" {
 				maxwell.UploadToS3(maxwell.SquareResize(file, o.Size),

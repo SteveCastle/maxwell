@@ -21,17 +21,12 @@ func exitErrorf(msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-type OutputConfig struct {
-	Type string
-	Size int
-}
-
 func main() {
 	//settings
-	bucket := flag.String("bucket", "maxwell-go", "Bucket to connect to.")
-	region := flag.String("region", "us-east-1", "Region of the bucket to connect to.")
-	sourcePath := flag.String("source", "images/", "Prefix to get input objects.")
-	cachePath := flag.String("cache", "maxwell-cache/", "Prefix to write output objects.")
+	bucket := flag.String("bucket", "notable-vegas", "Bucket to connect to.")
+	region := flag.String("region", "us-west-2", "Region of the bucket to connect to.")
+	sourcePath := flag.String("source", "public/media/", "Prefix to get input objects.")
+	cachePath := flag.String("cache", "public/maxwell-cache/", "Prefix to write output objects.")
 	config := flag.String("config", "config.json", "Config file for output")
 
 	// Open the config file and parse it to an array of OutputConfig structs.
@@ -42,7 +37,7 @@ func main() {
 		fmt.Println("Error reading config file.")
 		return
 	}
-	var outputs []OutputConfig
+	var outputs []maxwell.OutputConfig
 
 	err = json.Unmarshal(file, &outputs)
 	if err != nil {
@@ -84,7 +79,13 @@ func main() {
 }
 
 // processFile contains all of the logic to handle a single s3 target object.
-func processFile(wg *sync.WaitGroup, record *s3.Object, bucket *string, cachePath *string, outputs []OutputConfig, downloader *s3manager.Downloader, uploader *s3manager.Uploader) {
+func processFile(wg *sync.WaitGroup,
+	record *s3.Object,
+	bucket *string,
+	cachePath *string,
+	outputs []maxwell.OutputConfig,
+	downloader *s3manager.Downloader,
+	uploader *s3manager.Uploader) {
 	defer wg.Done()
 	fmt.Printf("Working on: %s\n", *record.Key)
 
@@ -108,7 +109,7 @@ func processFile(wg *sync.WaitGroup, record *s3.Object, bucket *string, cachePat
 
 	fmt.Println("Downloaded", numBytes, "bytes")
 
-	// process and upload defined file sizes.
+	// process and upload transformations defined in output config.
 	for _, o := range outputs {
 		if o.Type == "square" {
 			maxwell.UploadToS3(maxwell.SquareResize(file, o.Size),
